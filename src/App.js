@@ -1,68 +1,89 @@
-import './App.css';
+// import './App.css';
 // import { mainModule } from 'process';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 function App() {
+  const [guestList, setGuestList] = useState([]);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [refetch, setRefetch] = useState(true);
+
   const baseUrl = 'http://localhost:4000';
+  // 'https://randomuser.me/api/?results=10';
+  //to print out the guests
+  // useEffect(() => {
+  //   async function fetchGuestList() {
+  //     const response = await fetch(baseUrl);
+  //     const data = await response.json();
+  //     console.log(data);
+  //     setGuestList(data.results);
+  //   }
 
-  async function fetchGuestlist() {
-    const response = await fetch(`${baseUrl}/guests`);
-    const guests = await response.json();
-  }
+  //   fetchGuestList().catch((error) => console.log(error));
+  // }, [refetch]);
 
-  const [firstName, setFirstName] = useState();
-  const [lastName, setLastName] = useState();
-  const [newGuest, setNewGuest] = useState('');
+  // to add a new guest
+  const [createdGuest, setCreatedGuest] = useState('');
   const [updated, setUpdated] = useState('');
 
-  async function handleOnKeyDown(event) {
-    if (event.key === 'Enter') {
+  useEffect(() => {
+    async function handleOnKeyDown(event) {
+      // if (event.key === 'Enter'){
+
+      event.preventDefault();
+      // const guest = { firstName, lastName };
       const response = await fetch(`${baseUrl}/guests`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          firstName: { firstName },
-          lastName: { lastName },
-        }),
+        body: JSON.stringify({ firstName: 'Karl', lastName: 'Horky' }),
       });
       const createdGuest = await response.json();
-      setUpdated(newGuest);
+      setUpdated(createdGuest);
     }
-  }
-
-  const [guestList, setGuestList] = useState();
-  setGuestList(guests);
-  const guest = guests[0];
+    handleOnKeyDown().catch((error) => console.log(error));
+  }, [refetch]);
 
   return (
-    <div>
+    <>
       <h1>Guest List</h1>
-      <label>
-        First name
+      <label htmlFor="firstName">
+        First name:
         <input
-          value={guest.firstName}
+          value={firstName}
           onChange={(e) => setFirstName(e.currentTarget.value)}
         />
       </label>
-      <label>
-        Last name
+      <br />
+      <label htmlFor="lastName">
+        Last name:
         <input
-          value={guest.lastName}
+          value={lastName}
           onChange={(e) => setLastName(e.currentTarget.value)}
-          onKeyDown={() => handleOnKeyDown()}
+          // onKeyDown={() => handleOnKeyDown()}
         />
-        {guests.map((guest) => {
-          return (
-            <div key={guest.id}>
-              {guest.firstName} {guest.lastName}
-            </div>
-          );
-        })}
+        <button onClick={(event) => handleOnKeyDown()}>Submit</button>
+        <button
+          onClick={() => setRefetch(refetch)}
+          // onSubmit={() =>handleOnKeyDown}
+        >
+          Refetch
+        </button>
       </label>
+      {guestList.map((guest) => {
+        return (
+          <ul key={`guest-profile-${guest.id.value}`}>
+            <li>
+              {guest.firstName}
+              {guest.lastName}
+            </li>
+          </ul>
+        );
+      })}
+      <p>Press 'Enter' to submit</p>
       <button aria-label="Remove">Remove</button>
-    </div>
+    </>
   );
 }
 
