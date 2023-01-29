@@ -1,88 +1,103 @@
 // import './App.css';
 // import { mainModule } from 'process';
-import { useEffect, useState } from 'react';
+import { startTransition, useEffect, useState } from 'react';
 
 function App() {
   const [guestList, setGuestList] = useState([]);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [refetch, setRefetch] = useState(true);
+  const [status, setStatus] = useState(false);
 
-  const baseUrl = 'http://localhost:4000';
-  // 'https://randomuser.me/api/?results=10';
-  //to print out the guests
-  // useEffect(() => {
-  //   async function fetchGuestList() {
-  //     const response = await fetch(baseUrl);
-  //     const data = await response.json();
-  //     console.log(data);
-  //     setGuestList(data.results);
-  //   }
+  const baseUrl = 'http://localhost:4000/guests';
+  // 'https://randomuser.me/api/';
 
-  //   fetchGuestList().catch((error) => console.log(error));
-  // }, [refetch]);
-
-  // to add a new guest
+  // to print out the guestList from API
+  async function fetchGuestList(event) {
+    event.preventDefault();
+    try {
+      const response = await fetch(baseUrl);
+      const data = await response.json();
+      setGuestList(data);
+      console.log(data);
+    } catch (error) {
+      console.log('error');
+    }
+  }
+  // to add a creaatedGuest to API
   const [createdGuest, setCreatedGuest] = useState('');
   const [updated, setUpdated] = useState('');
-
-  useEffect(() => {
-    async function handleOnKeyDown(event) {
-      // if (event.key === 'Enter'){
-
-      event.preventDefault();
-      // const guest = { firstName, lastName };
-      const response = await fetch(`${baseUrl}/guests`, {
+  async function addGuest(event) {
+    event.preventDefault();
+    try {
+      const response = await fetch(baseUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ firstName: 'Karl', lastName: 'Horky' }),
+        body: JSON.stringify({
+          firstName: { firstName },
+          lastName: { lastName },
+          status: false,
+        }),
       });
       const createdGuest = await response.json();
       setUpdated(createdGuest);
+
+      setFirstName('');
+      setLastName('');
+      console.log(createdGuest);
+    } catch (error) {
+      console.log('error');
     }
-    handleOnKeyDown().catch((error) => console.log(error));
-  }, [refetch]);
+  }
+  const guest = guestList[0];
 
   return (
     <>
       <h1>Guest List</h1>
-      <label htmlFor="firstName">
-        First name:
-        <input
-          value={firstName}
-          onChange={(e) => setFirstName(e.currentTarget.value)}
-        />
-      </label>
-      <br />
-      <label htmlFor="lastName">
-        Last name:
-        <input
-          value={lastName}
-          onChange={(e) => setLastName(e.currentTarget.value)}
-          // onKeyDown={() => handleOnKeyDown()}
-        />
-        <button onClick={(event) => handleOnKeyDown()}>Submit</button>
-        <button
-          onClick={() => setRefetch(refetch)}
-          // onSubmit={() =>handleOnKeyDown}
-        >
-          Refetch
-        </button>
-      </label>
-      {guestList.map((guest) => {
-        return (
-          <ul key={`guest-profile-${guest.id.value}`}>
-            <li>
-              {guest.firstName}
-              {guest.lastName}
-            </li>
-          </ul>
-        );
-      })}
-      <p>Press 'Enter' to submit</p>
-      <button aria-label="Remove">Remove</button>
+
+      <form onSubmit={(addGuest, fetchGuestList)}>
+        <label htmlFor="firstName">
+          First name:
+          <input
+            value={firstName}
+            onChange={(e) => setFirstName(e.currentTarget.value)}
+          />
+        </label>
+        <br />
+        <label htmlFor="lastName">
+          Last name:
+          <input
+            // tabIndex={0}
+            value={lastName}
+            onChange={(e) => setLastName(e.currentTarget.value)}
+          />
+          <p>Press 'Enter' to submit</p>
+        </label>
+        <button>Sumbit</button>
+      </form>
+      <h2>Guests: </h2>
+      {guestList.length > 0 ? (
+        guestList.map((guest) => (
+          <div key={guest.id}>
+            <input
+              type="checkbox"
+              checked={guest.status}
+              key={guest.id}
+              onChange={(event) => setStatus(event.currentTarget.checked)}
+            />
+            <h3>
+              {guest.firstName.firstName}&nbsp;{guest.lastName.lastName}&nbsp;
+              is&nbsp;{status ? '' : 'not'} attending
+            </h3>
+          </div>
+        ))
+      ) : (
+        <div>No guests</div>
+      )}
+      <button type="button" aria-label="Remove">
+        Remove
+      </button>
     </>
   );
 }
