@@ -1,30 +1,32 @@
-// import './App.css';
-// import { mainModule } from 'process';
-import { array } from 'prop-types';
-import { startTransition, useEffect, useState } from 'react';
+import { request } from 'http';
+import { useEffect, useState } from 'react';
 
 function App() {
   const [guestList, setGuestList] = useState([]);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [isChecked, setIsChecked] = useState(false);
+  const [isAttending, setIsAttending] = useState(false);
+  const [createdGuest, setCreatedGuest] = useState('');
+  const [updated, setUpdated] = useState('');
+  // const [checkedState, setCheckedState] = useState(false);
 
   const baseUrl = 'http://localhost:4000/guests';
 
   // to print out the guestList from API
-  async function fetchGuestList() {
-    try {
+  useEffect(() => {
+    const fetchGuestList = async () => {
       const response = await fetch(baseUrl);
       const data = await response.json();
       setGuestList(data);
-    } catch (error) {
-      console.log('error');
-    }
-  }
-  // to add a creaatedGuest to API
-  const [createdGuest, setCreatedGuest] = useState('');
-  const [updated, setUpdated] = useState('');
+      console.log(data);
+    };
+    // (error)
+    // console.log('error');
+    // }
+    fetchGuestList().catch((error) => console.log(error));
+  }, []);
 
+  // to add a creaatedGuest to API
   async function addGuest(event) {
     event.preventDefault();
     try {
@@ -34,28 +36,46 @@ function App() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          firstName,
-          lastName,
-          status: false,
+          firstName: firstName,
+          lastName: lastName
         }),
       });
-      const createdGuest = await response.json();
+      const newGuest = await response.json();
+      console.log(createdGuest);
+      setUpdated(createdGuest);
+      setGuestList([...guestList, newGuest]);
+      console.log(guestList);
       setFirstName('');
       setLastName('');
     } catch (error) {
-      console.log('error');
+      console.log(error);
     }
   }
-  fetchGuestList();
-  const guest = guestList[0];
 
-  // function handleRemove(id) {
-  //   const newList = guestList.filter((guest) => guest.id !== id);
-  //   setGuestList(newList);
-  // }
+  // change the guest.attending in API
+  async function updateGuestAttending(attending) {
+    if(checked) put request attending=true
+    esle{attending=false}
+    try {
+      const response = await fetch(`${baseUrl}/guests/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(attending),
+      });
+      const updatedGuest = await response.json();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  // to control the remove button
+  // function handleRemove() {
+  // const response = await fetch(`${baseUrl}/guests/${id}`, { method: 'DELETE' });
+  // const deletedGuest = await response.json();}
 
   return (
-    <>
+    <div data-test-id="guest">
       <h1>Guest List</h1>
       <form onSubmit={addGuest}>
         <label htmlFor="firstName">
@@ -81,15 +101,20 @@ function App() {
         guestList.map((guest) => (
           <div key={`guest-profile-${guest.id}`}>
             <input
+              id={guest.id}
+              aria-label="attending"
               type="checkbox"
-              checked={guest.isChecked}
+              checked={guest.attending}
               key={guest.id}
-              onChange={(event) => setIsChecked(event.currentTarget.checked)}
-            />
+              onChange = ((event) => setIsAttending(event.currentTarget.checked)
+
+                    ? updateGuestAttending(true)
+
+                    : updateGuestAttending(false),
+              }}  />
             <h3>
               {guest.firstName}&nbsp;{guest.lastName}
-              &nbsp;is&nbsp;
-              {isChecked ? '' : 'not '}attending
+              &nbsp;is&nbsp; {isChecked ? '' : 'not '}attending
             </h3>
             <button
               type="button"
@@ -103,8 +128,19 @@ function App() {
       ) : (
         <div>No guests</div>
       )}
-    </>
+    </div>
   );
 }
 
 export default App;
+
+onChange={handleOnChange}
+const handleOnChange =(event) => {
+ // const dicision = false;
+ event.currentTarget.checked
+  if (event.currentTarget.checked){
+    put request({attending:true})
+  }else{
+    put request({attending:false})
+  }
+}
