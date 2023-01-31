@@ -1,17 +1,15 @@
-import { request } from 'http';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 
 function App() {
   const [guestList, setGuestList] = useState([]);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [isAttending, setIsAttending] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
   const [createdGuest, setCreatedGuest] = useState('');
   const [updated, setUpdated] = useState('');
-  // const [checkedState, setCheckedState] = useState(false);
 
   const baseUrl = 'http://localhost:4000/guests';
-
+  const id = useId();
   // to print out the guestList from API
   useEffect(() => {
     const fetchGuestList = async () => {
@@ -20,9 +18,6 @@ function App() {
       setGuestList(data);
       console.log(data);
     };
-    // (error)
-    // console.log('error');
-    // }
     fetchGuestList().catch((error) => console.log(error));
   }, []);
 
@@ -37,7 +32,8 @@ function App() {
         },
         body: JSON.stringify({
           firstName: firstName,
-          lastName: lastName
+          lastName: lastName,
+          id: id,
         }),
       });
       const newGuest = await response.json();
@@ -52,27 +48,33 @@ function App() {
     }
   }
 
-  // change the guest.attending in API
-  async function updateGuestAttending(attending) {
-    if(checked) put request attending=true
-    esle{attending=false}
+  // const id = JSON.stringify(guestList.find((guest) => guest.id));
+  // console.log(guestList.id);
+  // const id = guestList.find((guest) => guest.id === { id });
+  async function handleAttendingOnChange(attending) {
     try {
-      const response = await fetch(`${baseUrl}/guests/${id}`, {
+      const response = await fetch(`${baseUrl}/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(attending),
+        body: JSON.stringify({ attending: true }),
       });
-      const updatedGuest = await response.json();
+      const guestUpdated = await response.json();
     } catch (error) {
       console.log(error);
     }
   }
-  // to control the remove button
-  // function handleRemove() {
-  // const response = await fetch(`${baseUrl}/guests/${id}`, { method: 'DELETE' });
-  // const deletedGuest = await response.json();}
+
+  //  to control the remove button
+  async function handleRemove() {
+    const response = await fetch(`${baseUrl}/guests/${id}`, {
+      method: 'DELETE',
+    });
+    const deletedGuest = await response.json();
+    const newList = [...guestList];
+    setGuestList(newList.filter((guest) => guest.id !== id));
+  }
 
   return (
     <div data-test-id="guest">
@@ -106,20 +108,20 @@ function App() {
               type="checkbox"
               checked={guest.attending}
               key={guest.id}
-              onChange = ((event) => setIsAttending(event.currentTarget.checked)
-
-                    ? updateGuestAttending(true)
-
-                    : updateGuestAttending(false),
-              }}  />
+              onChange={(event) =>
+                event.target.checked
+                  ? handleAttendingOnChange(true)
+                  : handleAttendingOnChange(false)
+              }
+            />
             <h3>
               {guest.firstName}&nbsp;{guest.lastName}
-              &nbsp;is&nbsp; {isChecked ? '' : 'not '}attending
+              &nbsp;is&nbsp; {guest.attending ? '' : 'not '}attending
             </h3>
             <button
               type="button"
               aria-label="Remove"
-              // onClick={handleRemove(guest.id)}
+              //onClick={handleRemove(guest.id)}
             >
               Remove
             </button>
@@ -133,14 +135,3 @@ function App() {
 }
 
 export default App;
-
-onChange={handleOnChange}
-const handleOnChange =(event) => {
- // const dicision = false;
- event.currentTarget.checked
-  if (event.currentTarget.checked){
-    put request({attending:true})
-  }else{
-    put request({attending:false})
-  }
-}
